@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/aos.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.pc.css">
+    <title>portfolio</title>
+</head>
+<body>
+
+    <div class="btn">
+        <div class="active"></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+
+    <div class="every">
+    
+        <section class="s1">
+
+          <header>
+     
+            <div class="hWrap">
+                <p>WEBDESIGN <br>
+                  PORTFOLIO</p>
+            </div>
+
+            <canvas>
+
+                <script id="rendered-js">const canvas = document.querySelector("canvas")
+                    let requestId = null
+                    
+                    const getHeight = () => canvas?.offsetHeight ?? 0
+                    const getWidth = () => canvas?.offsetWidth ?? 0
+                    let elapsedTime = 0
+                    
+                    const getRandomInteger = (min, max) => {
+                        return Math.round(Math.random() * (max - min) + min);
+                    };
+                    
+                    class Star {
+                      constructor() {
+                        this.startPosition = {
+                          x: Math.random() * getWidth(),
+                          y: Math.random() * getHeight()
+                        }
+                        this.position = { ...this.startPosition }
+                        this.distance = Math.sqrt(
+                          Math.pow(this.position.x - getWidth() / 2, 2) +
+                            Math.pow(this.position.y - (getHeight() / 2 + 100), 2)
+                        )
+                        this.size = Math.random() * (1.5 - 0.1) + 0.1
+                        this.angle = (Math.atan2(this.position.y, this.position.x) * 180) / Math.PI
+                        this.color = "#fff"
+                      }
+                    }
+                    
+                    class ShootingStar {
+                      #getStartPosition() {
+                        const sides = ["left", "top", "right"]
+                        const side = sides[getRandomInteger(0, 2)]
+                        switch (side) {
+                          case "left": {
+                            return {
+                              x: 0,
+                              y: getRandomInteger(0, getHeight())
+                            }
+                          }
+                          case "top": {
+                            return {
+                              x: getRandomInteger(0, getWidth()),
+                              y: 0
+                            }
+                          }
+                          case "right": {
+                            return {
+                              x: getWidth(),
+                              y: getRandomInteger(0, getHeight())
+                            }
+                          }
+                          default: {
+                            return {
+                              x: getRandomInteger(0, getWidth()),
+                              y: 0
+                            }
+                          }
+                        }
+                      }
+                    
+                      constructor() {
+                        this.position = this.#getStartPosition()
+                        this.timeToBurn = getRandomInteger(500, 1000)
+                        this.burningTime = getRandomInteger(800, 1500)
+                        this.angle = getRandomInteger(40, 140)
+                        this.isSetTimeToBurnTimestamp = false
+                        this.timeToBurnTimestamp = 0
+                        this.isSetBurningTimeTimestamp = false
+                        this.burningTimeTimestamp = 0
+                        this.burningStartPosition = {
+                          x: 0,
+                          y: 0
+                        }
+                        this.isBurning = false
+                        this.isBurned = false
+                        this.speed = 1
+                        this.size = 2
+                        this.color = "#fff"
+                        this.starAlpha = 1
+                        this.trailAlpha = 1
+                        this.timeToFadeOut = this.burningTime / 1.1
+                      }
+                    }
+                    const getStars = amount => {
+                      const stars = []
+                      for (let i = 0; i < amount; i++) {
+                        stars.push(new Star())
+                      }
+                      return stars
+                    }
+                    
+                    const update = (
+                      time,
+                      stars,
+                      starsAmount,
+                      shootingStars,
+                      canvas,
+                      ctx,
+                      skyX,
+                      skyY
+                    ) => {
+                      if (time - elapsedTime >= 5000) {
+                        elapsedTime = time
+                        shootingStars.push(new ShootingStar())
+                      }
+                    
+                      ctx.beginPath()
+                      ctx.fillStyle = getBackground() ?? "black"
+                      ctx.rect(0, 0, canvas.width, canvas.height)
+                      ctx.fill()
+                    
+                      let newShootingStars = []
+                      if (shootingStars.length > 0) {
+                        newShootingStars = shootingStars.filter(
+                          shootingStar => shootingStar.isBurned === false
+                        )
+                        newShootingStars.forEach(shootingStar => {
+                          if (shootingStar.isSetTimeToBurnTimestamp === false) {
+                            shootingStar.timeToBurnTimestamp = time
+                            shootingStar.isSetTimeToBurnTimestamp = true
+                          }
+                    
+                          if (
+                            time - shootingStar.timeToBurnTimestamp >= shootingStar.timeToBurn &&
+                            shootingStar.isBurning === false
+                          ) {
+                            shootingStar.isBurning = true
+                          }
+                    
+                          if (
+                            shootingStar.isSetBurningTimeTimestamp === false &&
+                            shootingStar.isBurning === true
+                          ) {
+                            shootingStar.burningTimeTimestamp = time
+                            shootingStar.isSetBurningTimeTimestamp = true
+                            shootingStar.burningStartPosition = { ...shootingStar.position }
+                          }
+                    
+                          if (shootingStar.isBurning && shootingStar.isBurned !== true) {
+                            if (
+                              time - shootingStar.burningTimeTimestamp >=
+                              shootingStar.burningTime / 1.8
+                            ) {
+                              if (shootingStar.starAlpha - 0.1 < 0) shootingStar.starAlpha = 0
+                              shootingStar.starAlpha -= 0.1
+                              shootingStar.color = `rgba(255, 255, 255, ${shootingStar.starAlpha})`
+                            }
+                    
+                            if (
+                              time - shootingStar.burningTimeTimestamp >=
+                              shootingStar.burningTime
+                            ) {
+                              shootingStar.isBurned = true
+                            }
+                            shootingStar.size += 0.005
+                            const shootingStarTrail = ctx.createLinearGradient(
+                              shootingStar.burningStartPosition.x,
+                              shootingStar.burningStartPosition.y,
+                              shootingStar.position.x + shootingStar.size / 2,
+                              shootingStar.position.y + shootingStar.size / 2
+                            )
+                            if (
+                              time - shootingStar.burningTimeTimestamp >=
+                              shootingStar.timeToFadeOut
+                            ) {
+                              if (shootingStar.trailAlpha - 0.05 < 0) shootingStar.trailAlpha = 0
+                              shootingStar.trailAlpha -= 0.05
+                            }
+                            shootingStarTrail.addColorStop(0, "rgba(255, 255, 255, 0)")
+                            shootingStarTrail.addColorStop(
+                              1,
+                              `rgba(255, 255, 255, ${shootingStar.trailAlpha})`
+                            )
+                            ctx.beginPath()
+                            ctx.moveTo(
+                              shootingStar.burningStartPosition.x,
+                              shootingStar.burningStartPosition.y
+                            )
+                            ctx.lineTo(
+                              shootingStar.position.x + shootingStar.size / 2,
+                              shootingStar.position.y + shootingStar.size / 2
+                            )
+                            ctx.strokeStyle = shootingStarTrail
+                            ctx.stroke()
+                          }
+                    
+                          const angle = (shootingStar.angle * Math.PI) / 180;
+                          const dx = Math.cos(shootingStar.angle) * shootingStar.speed
+                          const dy = Math.sin(shootingStar.angle) * shootingStar.speed
+                          shootingStar.position.x += dx
+                          shootingStar.position.y += dy
+                          ctx.fillStyle = shootingStar.color
+                          ctx.fillRect(
+                            shootingStar.position.x,
+                            shootingStar.position.y,
+                            shootingStar.size,
+                            shootingStar.size
+                          )
+                        })
+                      }
+                    
+                      ctx.beginPath()
+                      ctx.fillStyle = "#fff"
+                      for (let i = 0; i < starsAmount; i++) {
+                        stars[i].x = skyX + stars[i].distance * Math.sin(stars[i].angle)
+                        stars[i].y = skyY + stars[i].distance * Math.cos(stars[i].angle)
+                        stars[i].angle += 0.00002
+                        if (
+                          stars[i].x > 0 &&
+                          stars[i].x <= canvas.width &&
+                          stars[i].y > 0 &&
+                          stars[i].y <= canvas.height
+                        ) {
+                          ctx.rect(stars[i].x, stars[i].y, stars[i].size, stars[i].size)
+                        }
+                      }
+                      ctx.fill()
+                      requestId = requestAnimationFrame(time =>
+                        update(time, stars, starsAmount, newShootingStars, canvas, ctx, skyX, skyY)
+                      )
+                    }
+                    
+                    const getBackground = () => {
+                      if (!canvas) return;
+                      const ctx = canvas.getContext("2d")
+                      if (!ctx) return
+                    
+                      const bg = ctx.createRadialGradient(
+                        canvas.width / 2,
+                        canvas.height * 2.5,
+                        canvas.height,
+                        canvas.width / 2,
+                        canvas.height * 2.5,
+                        canvas.height * 4
+                      )
+                      bg.addColorStop(0, "#953b3b") //빨강
+                      bg.addColorStop(0.4, "#ff9a9e") //초록
+                      bg.addColorStop(0.6, "#953b3b") //파랑
+                    
+                      return bg
+                    }
+                    
+                    const skyX = canvas.offsetWidth / 2
+                    const skyY = canvas.offsetHeight / 3
+                    const starsAmount = 2000
+                    
+                    const ctx = canvas.getContext("2d")
+                    
+                    ctx.canvas.width = canvas.offsetWidth
+                    ctx.canvas.height = canvas.offsetHeight
+                    
+                    const stars = getStars(starsAmount)
+                    const shootingStars = []
+                    
+                    requestId = requestAnimationFrame(time =>
+                      update(time, stars, starsAmount, shootingStars, canvas, ctx, skyX, skyY)
+                    )</script>
+            </canvas>
+
+                
+          </header>
+
+        </section><!--s1-->
+    
+        <section class="s2">
+            <div class="pro">
+                <div class="pcon">
+                    <div class="pBox1" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">
+                        <div class="ph">
+                            <p><img src="images/photo.jpg" alt="증명사진"></p>
+                        </div>    
+                    </div>
+        
+                    <div class="pBox2">
+        
+                        <div class="box" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">
+                            <p>Profile</p>
+        
+                            <ul>
+                                <li>박 선 영 Park seon young</li>
+                                <li>1996.12.13 </li>
+                                <li>010-5846-8597</li>
+                                <li>seon_0_e@naver.com</li>
+                            </ul>
+        
+                        </div>
+        
+                        <div class="box" data-aos="fade-up" data-aos-duration="1000"
+                        data-aos-delay="300">
+                            <p>CAREER</p>
+        
+                            <ul>
+                                <li>2014 성모여자고등학교 졸업</li>
+                                <li>2015 동의대학교 디지털영상공학부 입학 </li>
+                                <li>2019 동의대학교 디지털문화콘텐츠학과 졸업 </li>
+                                <li>2019-2020 동의대학교 레저스포츠태권도학과 조교</li>
+                                <li>2020-2021 동의대학교 태권도학과 조교</li>
+                                <li>2021-2022 부산예술대학교 무용과 조교</li>
+                            </ul>
+                            
+                        </div>
+        
+                        <div class="box" data-aos="fade-up" data-aos-duration="1000"
+                        data-aos-delay="500">
+                            <p>TOOL</p>
+                            <p class="tool">html / css / javascript / jQuery / photoshop / illustrator </p>                    
+                        </div>
+        
+                    </div><!--pbox2-->
+                </div><!--pcon-->
+            </div><!--pro-->
+        </section><!--s2-->
+    
+        <section class="s3">
+            <div class="denby">
+                <div class="dcon">
+                    <div class="dBox1" data-aos="fade-right" data-aos-duration="1000">
+                        <p class="dp"><img src="images/denby.png" alt="덴비홈페이지화면"></p>    
+                    </div><!--dbox1-->
+                    
+                    <div class="dBox2" data-aos="fade-left" data-aos-duration="1000">
+                        <h2>DENBY</h2>
+                        <h3>About Design</h3>
+                        <p>기존의 덴비의 홈페이지는 신제품과 기존제품에 대한 표현이 부족하다고 생각하여 <br class="mo">
+                           리뉴얼하게 되었습니다. <br> 덴비의 로고의 색과 비슷하고 깔끔하게 무채색을 <br class="mo">
+                           주로 사용하여 제품에 더욱 시선이 갈 수 있도록 하였습니다. <br>
+                            기존 홈페이지에는 없던 신제품과 이벤트 그리고 프로모션을 홈페이에 추가하여<br class="mo">
+                             따로 페이지를 새로 열지 않아도 <br> 한눈에 확인할 수 있습니다.
+                            </p>
+                        <h3>Used Tool</h3>
+                        <p>HTML / CSS / jQuery / Photoshop</p>
+        
+                        <h3>Color</h3>
+                        <div class="color">
+                            <div class="cb d1"></div>
+                            <div class="cb d2"></div>
+                            <div class="cb d3"></div>
+                            <div class="cb d4"></div>
+                        </div><!--color-->
+
+                        <div class="bt">
+                          <button class="bf">
+                            <a href="http://www.denby.co.kr/" target="_blank">before</a>
+                          </button>
+                          <button class="af">
+                            <a href="pages/Denby/index.html" target="_blank">after</a>
+                          </button>
+                        </div>
+                        
+                    </div><!--dbox2-->
+                </div> <!--dcon-->  
+            </div><!--denby-->
+        </section><!--s3-->
+    
+        <section class="s4">
+            <div class="smooth">
+                <div class="scon">
+                    <div class="sBox1" data-aos="fade-right" data-aos-duration="1000">
+                      <p class="sp"> <img src="images/smooth.png" alt="스무디킹홈페이지화면"></p>   
+                    </div><!--sbox1-->
+                    
+                    <div class="sBox2" data-aos="fade-left" data-aos-duration="1000">
+                        <h2>SMOOTHKING</h2>
+                        <h3>About Design</h3>
+                        <p>스무디킹의 기존 홈페이지는 메인페이지부터 정보 및 홍보성이 부족하다고 생각하여 <br class="mo">
+                           리뉴얼하게 되었습니다. <br>사람들이 보고 “먹고 싶다”라는 생각을 가질 수 있도록 <br class="mo">
+                           제품의 이미지와 과일의 이미지를 활용하였고, <br>식욕을 돋우는 색인 빨간색을 메인컬러로
+                            사용하였습니다. <br>메인페이지에 음료의 이미지 그리고 신제품과 스무디킹만의 독특한 이벤트인 <br class="mo">
+                            나만의 스무디를 만들 수 있는 <br>personal 스무디를 더욱 표현했습니다.    
+                            </p>
+                        <h3>Used Tool</h3>
+                        <p>HTML / CSS / jQuery / Photoshop</p>
+        
+                        <h3>Color</h3>
+                        <div class="color">
+                            <div class="cs s1"></div>
+                            <div class="cs s2"></div>
+                            <div class="cs s3"></div>
+                            <div class="cs s4"></div>
+                        </div><!--color-->
+                        
+                        <div class="bt">
+                          <button class="bf">
+                            <a href="https://www.shinsegaefood.com/smoothieking/index.sf" target="_blank">before</a>
+                          </button>
+                          <button class="af">
+                            <a href="pages/smoothieKing/index.html" target="_blank">after</a>
+                          </button>
+                        </div><!--bt-->
+
+                    </div><!--sbox2-->
+                </div><!--scon-->   
+            </div><!--smooth-->
+        </section><!--s4-->
+    
+        <section class="s5">
+            <footer>
+                <div class="fb">
+                    <p>THANKS TO READ</p>
+                </div>
+            </footer>
+        </section><!--s5-->
+
+    </div><!--every-->
+
+    <button class="top">TOP</button>
+
+<script src="js/jquery-3.7.0.min.js"></script>
+<script src="js/plugin/jquery.mousewheel.min.js"></script>
+<script src="js/aos.js"></script>
+
+<script>
+  AOS.init();
+</script>
+
+<script>
+
+$('.btn div').click(function(){
+
+    let i = $(this).index();
+
+    let offTop = $('.every section').eq(i).offset().top;
+
+    $('html,body').animate({'scrollTop':offTop});
+});
+
+$(window).scroll(function(){
+    let scr = $(window).scrollTop();
+
+    let s2 = $('.s2').offset().top;
+    let s3 = $('.s3').offset().top;
+    let s4 = $('.s4').offset().top;
+    let s5 = $('.s5').offset().top;
+
+if(scr >=0 && scr<s2){
+    $('.btn div').eq(0).addClass('active')
+        .siblings().removeClass('active');
+}else if(scr>=s2 && scr<s3){
+    $('.btn div').eq(1).addClass('active')
+        .siblings().removeClass('active');
+}else if(scr>=s3 && scr<s4){
+    $('.btn div').eq(2).addClass('active')
+        .siblings().removeClass('active');
+}else if(scr>=s4 && scr<s5){
+    $('.btn div').eq(3).addClass('active')
+        .siblings().removeClass('active');
+}else if(scr>=s5){
+    $('.btn div').eq(4).addClass('active')
+        .siblings().removeClass('active');
+
+    $('.fb').css({
+      'animationName':'foo'
+    });
+}
+
+});
+
+
+
+$('section').on('mousewheel',function(e,d){
+
+    if(d>0){
+
+    let prv = $(this).prev().offset().top;
+
+$('html,body')
+    .stop().animate({'scrollTop':prv});
+
+    }else if(d<0){
+
+    let nxt = $(this).next().offset().top;
+    $('html,body')
+    .stop().animate({'scrollTop':nxt});
+
+    }
+});
+
+
+
+$('.top').click(function(){
+
+$('html,body').animate({'scrollTop':0});
+
+});
+
+</script>
+
+</body>
+</html>
